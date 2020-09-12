@@ -1,11 +1,45 @@
 <script>
-    import {createEventDispatcher} from 'svelte';
+    import {createEventDispatcher, onMount, onDestroy, beforeUpdate, afterUpdate} from 'svelte';
     /*
-        The above line enables the creation of custom events. We are importing from 'svelte' [default library] the capability of bubbling up events to higher layers.
+        The above line enables the creation of custom events. We are importing from 'svelte' [default library].
+        createEventDispatcher: the capability of bubbling up events to higher layers.
+        onMount: scripts within this function are run AFTER the script block is run.
+        onDestroy: scripts within this function is run when we are dismissing the DOM elements called by this function.
     */
     export let content;
     let agreed = false;
     const dispatch = createEventDispatcher();
+    let agreedStatus = false;
+
+    /*
+        The below block of code showcases the sequence of execution of events. 
+        beforeUpdate runs first as it signifies an update to the DOM.
+        afterUpdate will run after the update cycle is complete. In sequence of load - beforeUpdate -> onMount -> afterUpdate. onDestroy is called alone.
+        The onMount function is a good place to plug in loaders or call other functions which should be triggered on load of the modal.
+        The onDestroy function is a good place to call in default return events and handle state change.
+    */
+    onMount(() => {
+        console.log("Mounted");
+    });
+    onDestroy(() => {
+        console.log("Destroyed");
+    });
+
+    console.log("All scripts executed");
+
+    //Note that beforeUpdate and afterUpdate runs during every DOM update. To ensure selected run of afterUpdate function, set a logical value in beforeUpdate related to the DOM that is updated 
+    beforeUpdate(() => {
+        console.log("before update");
+        agreedStatus = agreed; //checks if a value is updated just before executing afterUpdate
+    });
+    
+    afterUpdate(()=> {
+        console.log("after update");
+        if(agreedStatus){
+            const modalObj = document.querySelector('.modal');
+            modalObj.scrollTo(0,modalObj.scrollHeight);
+        }
+    })
 </script>
 
 <div class="backdrop" on:click="{() => dispatch('cancel')}"></div>
@@ -52,7 +86,7 @@
     top: 10vh;
     left: 10%;
     width: 80%;
-    max-height: 80vh;
+    max-height: 15vh;
     background: white;
     border-radius: 5px;
     z-index: 100;

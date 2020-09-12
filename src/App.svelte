@@ -7,12 +7,17 @@
 
 <script>
 import { text } from "svelte/internal";
+import { tick } from "svelte";
 import ContactCard from "./ContactCard.svelte"
 import Modal from "./Modal.svelte"
-//Another way of doing the above is adding it directly in main.js and defining the target div. Currently, target div is set as document.body. This can be identified as any other div.
-//Pascal case definition of components is IMPORTANT. Svelte treats all lowercase as HTML. PascalCase is treated as Svelte components.
-//Properties of ContactCard.svelte can be set in this component now.
+/*
+Another way of doing the above is adding it directly in main.js and defining the target div. Currently, target div is set as document.body. This can be identified as any other div.
+Pascal case definition of components is IMPORTANT. Svelte treats all lowercase as HTML. PascalCase is treated as Svelte components.
 
+Properties of ContactCard.svelte can be set in this component now.
+
+"Tick" is a special function like onMount, beforeUpdate, afterUpdate and onDestroy [see Modal.svelte]. Tick handles situations within the DOM update. It returns a promise that the consecutive actions will be done after the DOM update is complete. Details under transform().
+*/
 	export let name;
 	export let age = 40;
 	//declaring and creating as properties
@@ -26,6 +31,7 @@ import Modal from "./Modal.svelte"
 	let arrayPassword = [];
 	let showModal = false;
 	let targetAgreed = false;
+	let textarea_value="This is some text";
 	
 	function changeAge(){
 		age -=1;
@@ -100,6 +106,25 @@ import Modal from "./Modal.svelte"
 	function deletePassword(idx){
 		arrayPassword = arrayPassword.filter((password, index) => {
 			return index !== idx;
+		});
+	}
+	
+	function transform(event){
+		console.log("function called");
+		if(event.which !=9){return;}
+		event.preventDefault();
+		const selectStart = event.target.selectionStart;
+		const selectEnd = event.target.selectionEnd;
+		const value = event.target.value;
+
+		textarea_value = value.slice(0,selectStart) + value.slice(selectStart, selectEnd).toUpperCase() + value.slice(selectEnd);
+
+		/*
+			Tick returned a promise. After the promise is resolved, the activities will be done. This ensures the context within the function is maintained will executing activities. 
+		*/
+		tick().then(() => {
+			event.target.selectionStart = selectStart;
+			event.target.selectionEnd=selectEnd;
 		});
 	}
 </script>
@@ -193,7 +218,7 @@ import Modal from "./Modal.svelte"
 	<button on:click="{() => {showModal = true}}">Show Modal</button>
 	<!--Working with slots. Slot name: Modal
 		didAgree is a slot property defined in Modal.svelte
-		
+
 	-->
 	{#if showModal}
 		<Modal
@@ -208,7 +233,7 @@ import Modal from "./Modal.svelte"
 		</Modal>;
 	{/if}
 </main>
-
+<textarea rows="5" value="{textarea_value}" on:keydown={transform} />
 <!--CSS-->
 <style>
 	/*This style is scoped only in app.svelte. Also Svelte will remove any unused code.*/
