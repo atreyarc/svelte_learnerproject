@@ -8,6 +8,7 @@
 <script>
 import { text } from "svelte/internal";
 import ContactCard from "./ContactCard.svelte"
+import Modal from "./Modal.svelte"
 //Another way of doing the above is adding it directly in main.js and defining the target div. Currently, target div is set as document.body. This can be identified as any other div.
 //Pascal case definition of components is IMPORTANT. Svelte treats all lowercase as HTML. PascalCase is treated as Svelte components.
 //Properties of ContactCard.svelte can be set in this component now.
@@ -23,6 +24,8 @@ import ContactCard from "./ContactCard.svelte"
 	let arrayContactProps = [];
 	let strPassword = '';
 	let arrayPassword = [];
+	let showModal = false;
+	let targetAgreed = false;
 	
 	function changeAge(){
 		age -=1;
@@ -30,6 +33,8 @@ import ContactCard from "./ContactCard.svelte"
 	function changeName(){
 		name = "Roy";
 	}
+
+	$: console.log(targetAgreed);
 	$: uppercaseName = name.toUpperCase();
 	//$ signifies a labelled statement. In this csae UppercaseName will be recalculated every time name is recalculated.
 	$: console.log(name);
@@ -167,6 +172,7 @@ import ContactCard from "./ContactCard.svelte"
 		{/each}
 	</ul>
 
+
 	<!--Binding Contact Card properties with data from app.svelte-->
 <!-- 
 	{#if formstate==='done'}
@@ -184,7 +190,23 @@ import ContactCard from "./ContactCard.svelte"
 	<!--Shortcut to use when target prop name and input value is the same-->
 	<!--Note the if condition. This is a block statement. The '#' marks the beginning and "/" marks the end. There can be multiple conditions here - and multiple mark up statements between. All of these statements will function only if the condition within the if condition is true-->
 
-
+	<button on:click="{() => {showModal = true}}">Show Modal</button>
+	<!--Working with slots. Slot name: Modal
+		didAgree is a slot property defined in Modal.svelte
+		
+	-->
+	{#if showModal}
+		<Modal
+			on:cancel={() => (showModal = false)}
+			on:close={() => (showModal = false)}
+			let:didAgree = {targetAgreed}
+		>
+			<h1 slot="header">hi</h1>
+			<p>This works</p>
+			<p>But does it?</p>
+			<button slot="footer" on:click={() => {showModal = false}} disabled={!targetAgreed}>Confirm</button> 
+		</Modal>;
+	{/if}
 </main>
 
 <!--CSS-->
